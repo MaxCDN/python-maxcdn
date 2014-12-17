@@ -1,18 +1,18 @@
 from requests_oauthlib import OAuth1Session as OAuth1
-from os import environ as env
 
 try:
     import urlparse
-except ImportError: # handly python 3.x
+except ImportError: # handle python 3.x
     from urllib import parse as urlparse
+
 
 class MaxCDN(object):
     def __init__(self, alias, key, secret, server="rws.maxcdn.com", **kwargs):
-        self.url    = "https://%s/%s" % (server, alias)
+        self.url = "https://%s/%s" % (server, alias)
         self.client = OAuth1(key, client_secret=secret, **kwargs)
 
     def _get_headers(self, json=True):
-        headers = { "User-Agent": "Python MaxCDN API Client" }
+        headers = {"User-Agent": "Python MaxCDN API Client"}
         if json:
             headers["Content-Type"] = "application/json"
         return headers
@@ -30,14 +30,23 @@ class MaxCDN(object):
                 params = urlparse.parse_qs(params)
             data = params
 
-        return getattr(self.client, method)(self._get_url(end_point),
+        response = getattr(self.client, method)(self._get_url(end_point),
                 data=data, headers=self._get_headers(json=True),
-                **kwargs).json()
+                **kwargs)
+
+        try:
+            return response.json()
+        except ValueError:
+            return response._content
 
     def get(self, end_point, **kwargs):
-        return self.client.get(self._get_url(end_point),
+        response = self.client.get(self._get_url(end_point),
                 headers=self._get_headers(json=False),
-                **kwargs).json()
+                **kwargs)
+        try:
+            return response.json()
+        except ValueError:
+            return response._content
 
     def patch(self, end_point, data=None, **kwargs):
         return self._data_request("post", end_point, data=data, **kwargs)
@@ -57,4 +66,3 @@ class MaxCDN(object):
             return self.delete(path, data = { "files": file_or_files },
                     **kwargs)
         return self.delete(path, **kwargs)
-

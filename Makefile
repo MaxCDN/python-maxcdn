@@ -19,6 +19,9 @@ init: clean setup test
 setup: distribute
 	pip install -r requirements.txt -t $(target) -b $(source)
 
+console:
+	$(pypath) python
+
 clean:
 	rm -rf $(source) $(target) .ropeproject .coverage junit-report.xml
 	find . -type f -name "*.pyc" -exec rm -v {} \;
