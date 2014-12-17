@@ -15,8 +15,18 @@ class Response(object):
     def json(self):
         return self._json
 
+class ErrorResponse(object):
+    def __init__(self, code=200, badcontent="Some bad content."):
+        self._content = badcontent
+
+    def json(self):
+        raise ValueError("No JSON object could be decoded")
+
 def response(method, **kwargs):
     return Response(method, **kwargs)
+
+def error_response(**kwargs):
+    return ErrorResponse(**kwargs)
 
 #
 ################################################################################
@@ -48,11 +58,21 @@ class MaxCDNTests(unittest.TestCase):
             self.assertEqual(self.maxcdn._data_request(meth, meth+".json",
                 data={"foo":"bar"}), { "code": 200, "method": meth, "data": { "foo":"bar" } })
 
+            requests.Session.request = mock.create_autospec(mock_request,
+                    return_value=error_response())
+            with self.assertRaises(ValueError):
+                self.maxcdn._data_request(meth, meth+".json", data={"foo":"bar"})
+
     def test_get(self):
         requests.Session.request = mock.create_autospec(mock_request,
                 return_value=response("get"))
         self.assertEqual(self.maxcdn.get("/get.json"),
                 { "code": 200, "method": "get", "data": { "foo":"bar" } })
+
+        requests.Session.request = mock.create_autospec(mock_request,
+                return_value=error_response())
+        with self.assertRaises(ValueError):
+            self.maxcdn.get("/get.json")
 
     def test_post(self):
         requests.Session.request = mock.create_autospec(mock_request,

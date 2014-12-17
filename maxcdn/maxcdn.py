@@ -23,6 +23,12 @@ class MaxCDN(object):
         else:
             return self.url + end_point
 
+    def _parse_json(self, response):
+        try:
+            return response.json()
+        except ValueError, e:
+            raise ValueError(e.message + ". Raw response was:\n\n" + response._content)
+
     def _data_request(self, method, end_point, data, **kwargs):
         if data is None and "params" in kwargs:
             params = kwargs.pop("params")
@@ -33,20 +39,13 @@ class MaxCDN(object):
         response = getattr(self.client, method)(self._get_url(end_point),
                 data=data, headers=self._get_headers(json=True),
                 **kwargs)
-
-        try:
-            return response.json()
-        except ValueError:
-            return response._content
+        return self._parse_json(response)
 
     def get(self, end_point, **kwargs):
         response = self.client.get(self._get_url(end_point),
                 headers=self._get_headers(json=False),
                 **kwargs)
-        try:
-            return response.json()
-        except ValueError:
-            return response._content
+        return self._parse_json(response)
 
     def patch(self, end_point, data=None, **kwargs):
         return self._data_request("post", end_point, data=data, **kwargs)
