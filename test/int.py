@@ -1,51 +1,69 @@
 #!/usr/bin/env python
 import unittest
-import re
 import time
 import os
 
 from maxcdn import MaxCDN
 
+
 class MaxCDNIntegration(unittest.TestCase):
-
     def setUp(self):
-        self.alias   = os.environ["ALIAS"]
-        self.key     = os.environ["KEY"]
-        self.secret  = os.environ["SECRET"]
-        self.time    = str(int(time.mktime(time.gmtime())))
+        self.alias = os.environ["ALIAS"]
+        self.key = os.environ["KEY"]
+        self.secret = os.environ["SECRET"]
+        self.time = str(int(time.mktime(time.gmtime())))
 
-        self.max     = MaxCDN(self.alias, self.key, self.secret)
+        self.max = MaxCDN(self.alias, self.key, self.secret)
 
     def test_get(self):
-        for end_point in [ "account.json", "account.json/address", "users.json", "zones.json" ]:
+        for end_point in ["account.json",
+                          "account.json/address",
+                          "users.json",
+                          "zones.json"]:
             if "/" in end_point:
                 key = end_point.split("/")[1]
             else:
                 key = end_point.replace(".json", "")
 
-            res = self.max.get(end_point)
-            self.assertTrue(res["data"][key], "get "+key+" with data")
+            rsp = self.max.get(end_point)
+            self.assertTrue(rsp["data"][key], "get " + key + " with data")
+
+    def test_get_logs(self):
+        rsp = self.max.get("v3/reporting/logs.json")
+        self.assertTrue(rsp["next_page_key"],
+                        "get v3/reporting/logs.json with data")
 
     def test_post_and_delete(self):
-        data = { "name": self.time, "url": "http://www.example.com/" }
-        res  = self.max.post("/zones/pull.json", data=data)
-        zid  = str(res["data"]["pullzone"]["id"])
+        data = {"name": self.time, "url": "http://www.example.com/"}
+        res = self.max.post("/zones/pull.json", data=data)
+        zid = str(res["data"]["pullzone"]["id"])
 
+        rsp = self.max.delete("/zones/pull.json/" + zid)
         self.assertTrue(zid, "post")
-        self.assertEqual(200, self.max.delete("/zones/pull.json/"+zid)["code"], "delete")
+        self.assertEqual(200, rsp["code"], "delete")
 
     def test_put(self):
         street = self.time + "_put"
-        self.assertEqual(street, str(self.max.put("/account.json/address", { "street1": street })["data"]["address"]["street1"]))
+        rsp = self.max.put("/account.json/address", {"street1": street})
+        self.assertEqual(street, str(rsp["data"]["address"]["street1"]))
 
     def test_purge(self):
-        zone = self.max.get("zones/pull.json")["data"]["pullzones"][0]["id"]
-        self.assertEqual(200, self.max.purge(zone)["code"])
+        rsp = self.max.get("zones/pull.json")
+        zones = rsp["data"]["pullzones"]
+        zone = zones[len(zones) - 1]["id"]
 
-        popularfiles = self.max.get("reports/popularfiles.json")["data"]["popularfiles"]
+        rsp = self.max.purge(zone)
+        self.assertEqual(200, rsp["code"])
 
-        self.assertEqual(200, self.max.purge(zone, popularfiles[0]["uri"])["code"])
-        self.assertEqual(200, self.max.purge(zone, [ popularfiles[0]["uri"], popularfiles[1]["uri"]])["code"])
+        rsp = self.max.get("reports/popularfiles.json")
+        popularfiles = rsp["data"]["popularfiles"]
+
+        rsp = self.max.purge(zone, popularfiles[0]["uri"])
+        self.assertEqual(200, rsp["code"])
+
+        files = [popularfiles[0]["uri"], popularfiles[1]["uri"]]
+        rsp = self.max.purge(zone, files)
+        self.assertEqual(200, rsp["code"])
 
 if __name__ == '__main__':
         unittest.main()

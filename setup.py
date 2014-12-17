@@ -3,7 +3,7 @@
 
 options = {
     "name"                  : "maxcdn",
-    "version"               : "0.0.3",
+    "version"               : "0.0.4",
     "description"           : "A Python REST Client for MaxCDN REST Web Services",
     "author"                : "Joshua P. Mervine",
     "author_email"          : "joshua@mervine.net",

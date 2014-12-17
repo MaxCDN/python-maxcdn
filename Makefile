@@ -9,6 +9,7 @@ nose_opts=-v
 nose=python $(source)/nose/bin/nosetests
 cov_opts= --with-coverage --cover-package=maxcdn
 
+benchmark=./test/benchmark.py
 tests=./test/test.py
 int=./test/int.py
 
@@ -25,6 +26,9 @@ clean:
 
 coverage: build/coverage
 	$(pypath) python $(nose) $(cov_opts) $(tests)
+
+benchmark:
+	$(pypath) python $(benchmark)
 
 test:
 	$(pypath) python $(tests)
