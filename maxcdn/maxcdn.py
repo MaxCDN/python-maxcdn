@@ -1,8 +1,9 @@
 from requests_oauthlib import OAuth1Session as OAuth1
 
+# handle python 3.x
 try:
     import urlparse
-except ImportError: # handle python 3.x
+except ImportError:
     from urllib import parse as urlparse
 
 
@@ -27,7 +28,8 @@ class MaxCDN(object):
         try:
             return response.json()
         except ValueError, e:
-            raise ValueError(e.message + ". Raw response was:\n\n" + response._content)
+            raise ValueError(e.message + ". Raw response was:\n\n"
+                             + response._content)
 
     def _data_request(self, method, end_point, data, **kwargs):
         if data is None and "params" in kwargs:
@@ -35,17 +37,13 @@ class MaxCDN(object):
             if type(params) is str:
                 params = urlparse.parse_qs(params)
             data = params
-
-        response = getattr(self.client, method)(self._get_url(end_point),
-                data=data, headers=self._get_headers(json=True),
-                **kwargs)
+        action = getattr(self.client, method)
+        response = action(self._get_url(end_point), data=data,
+                          headers=self._get_headers(json=True), **kwargs)
         return self._parse_json(response)
 
-    def get(self, end_point, **kwargs):
-        response = self.client.get(self._get_url(end_point),
-                headers=self._get_headers(json=False),
-                **kwargs)
-        return self._parse_json(response)
+    def get(self, end_point, data=None, **kwargs):
+        return self._data_request("post", end_point, data=data, **kwargs)
 
     def patch(self, end_point, data=None, **kwargs):
         return self._data_request("post", end_point, data=data, **kwargs)
@@ -62,6 +60,5 @@ class MaxCDN(object):
     def purge(self, zoneid, file_or_files=None, **kwargs):
         path = "/zones/pull.json/%s/cache" % (zoneid)
         if file_or_files is not None:
-            return self.delete(path, data = { "files": file_or_files },
-                    **kwargs)
+            return self.delete(path, data={"files": file_or_files}, **kwargs)
         return self.delete(path, **kwargs)

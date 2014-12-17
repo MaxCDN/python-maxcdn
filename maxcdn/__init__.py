@@ -1,1 +1,1 @@
-from maxcdn import MaxCDN
+from .maxcdn import MaxCDN
