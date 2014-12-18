@@ -1,5 +1,4 @@
 from requests_oauthlib import OAuth1Session as OAuth1
-from pprint import pprint
 
 # handle python 3.x
 try:
@@ -21,15 +20,15 @@ class MaxCDN(object):
 
     def _get_url(self, end_point):
         if not end_point.startswith("/"):
-            return "%s/%s" % (self.url, end_point)
+            return "{0}/{1}".format(self.url, end_point)
         else:
             return self.url + end_point
 
     def _parse_json(self, response):
         try:
             return response.json()
-        except ValueError, e:
-            raise self.ServerError(response, e.message)
+        except ValueError as e:
+            raise self.ServerError(response, str(e))
 
     def _data_request(self, method, end_point, data, **kwargs):
         if data is None and "params" in kwargs:
@@ -72,14 +71,14 @@ class MaxCDN(object):
             try:
                 resp = response.json()
                 if message is None:
-                    message = (resp['error']['type'] + ":: "
-                               + resp['error']['message'])
+                    message = "{0}:: {1}".format(resp['error']['type'],
+                                                 resp['error']['message'])
                 self.reason = resp['error']['type']
             except ValueError:
                 if message is None:
-                    message = (str(response.status_code) + " "
-                               + response.reason + " from "
-                               + response.url)
+                    message = "{0} {1} from {2}".format(response.status_code,
+                                                        response.reason,
+                                                        response.url)
 
                 self.reason = response.reason
 
@@ -89,4 +88,3 @@ class MaxCDN(object):
             self.url = response.url
 
             super(Exception, self).__init__(message)
-

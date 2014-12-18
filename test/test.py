@@ -78,7 +78,7 @@ class MaxCDNTests(unittest.TestCase):
 
             requests.Session.request = mock.create_autospec(mock_request,
                     return_value=error_response())
-        with self.assertRaises(MaxCDN.ServerError):
+        with self.assertRaises(MaxCDN.ServerError, None):
                 self.maxcdn._data_request(meth, meth+".json", data={"foo":"bar"})
 
     def test_get(self):
@@ -90,7 +90,7 @@ class MaxCDNTests(unittest.TestCase):
 
         requests.Session.request = mock.create_autospec(mock_request,
                 return_value=error_response())
-        with self.assertRaises(MaxCDN.ServerError):
+        with self.assertRaises(MaxCDN.ServerError, None):
             self.maxcdn.get("/get.json")
 
     def test_post(self):
