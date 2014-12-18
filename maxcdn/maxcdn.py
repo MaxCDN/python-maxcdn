@@ -1,4 +1,5 @@
 from requests_oauthlib import OAuth1Session as OAuth1
+from pprint import pprint
 
 # handle python 3.x
 try:
@@ -28,8 +29,7 @@ class MaxCDN(object):
         try:
             return response.json()
         except ValueError, e:
-            raise ValueError(e.message + ". Raw response was:\n\n"
-                             + response._content)
+            raise self.ServerError(response, e.message)
 
     def _data_request(self, method, end_point, data, **kwargs):
         if data is None and "params" in kwargs:
@@ -40,6 +40,10 @@ class MaxCDN(object):
         action = getattr(self.client, method)
         response = action(self._get_url(end_point), data=data,
                           headers=self._get_headers(json=True), **kwargs)
+
+        if (response.status_code > 299):
+            raise self.ServerError(response)
+
         return self._parse_json(response)
 
     def get(self, end_point, data=None, **kwargs):
@@ -62,3 +66,27 @@ class MaxCDN(object):
         if file_or_files is not None:
             return self.delete(path, data={"files": file_or_files}, **kwargs)
         return self.delete(path, **kwargs)
+
+    class ServerError(Exception):
+        def __init__(self, response, message=None):
+            try:
+                resp = response.json()
+                if message is None:
+                    message = (resp['error']['type'] + ":: "
+                               + resp['error']['message'])
+                self.reason = resp['error']['type']
+            except ValueError:
+                if message is None:
+                    message = (str(response.status_code) + " "
+                               + response.reason + " from "
+                               + response.url)
+
+                self.reason = response.reason
+
+            self.headers = response.headers
+            self.code = response.status_code
+            self.body = response._content
+            self.url = response.url
+
+            super(Exception, self).__init__(message)
+
