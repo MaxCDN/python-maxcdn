@@ -6,7 +6,7 @@ Do you like building cool stuff?  Do APIs keep you up at night? We're looking fo
 MaxCDN REST Web Services Python Client
 ======================================
 
-[![Build Status](https://travis-ci.org/maxcdn/python-maxcdn.png?branch=master)](https://travis-ci.org/maxcdn/python-maxcdn)
+[![Build Status](https://travis-ci.org/MaxCDN/python-maxcdn.svg?branch=master)](https://travis-ci.org/MaxCDN/python-maxcdn)
 
 Installation
 ------------
