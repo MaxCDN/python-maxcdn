@@ -46,7 +46,7 @@ class MaxCDN(object):
         return self._parse_json(response)
 
     def get(self, end_point, data=None, **kwargs):
-        return self._data_request("post", end_point, data=data, **kwargs)
+        return self._data_request("get", end_point, data=data, **kwargs)
 
     def patch(self, end_point, data=None, **kwargs):
         return self._data_request("post", end_point, data=data, **kwargs)
